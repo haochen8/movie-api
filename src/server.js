@@ -14,7 +14,8 @@ import { morganLogger } from './config/morgan.js'
 import { connectToDatabase } from './config/mongoose.js'
 import { router } from './routes/router.js'
 import swaggerUi from 'swagger-ui-express'
-import swaggerDocument from '../swagger/swagger.json' assert { type: 'json' }
+import swaggerDocument from '../swagger/swagger.js'
+
 
 // Load environment variables from .env file
 dotenv.config()
@@ -59,9 +60,10 @@ try {
       .json(copy)
   })
   // Start the server
-  const server = app.listen(process.env.PORT, () => {
-    logger.info(`Server running at http://localhost:${server.address().port}/api/`)
-    logger.info('Press Ctrl-C to terminate...')
+  const server = app.listen(process.env.PORT || 3000, () => {
+    const port = server.address().port
+    logger.info(`Server running on port ${port}`)
+    logger.info(`Swagger docs available at /api-docs`)
   })
 } catch (error) {
   logger.error('Error starting server:', error)
