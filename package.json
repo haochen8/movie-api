@@ -10,7 +10,7 @@
     "start": "node src/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "seed": "node seed/seedData.js",
+    "seed": "node scripts/seedData.js",
     "test:api": "newman run tests/Movie.API.postman_collection.json -e tests/example.postman_environment.json"
   },
   "keywords": [],
