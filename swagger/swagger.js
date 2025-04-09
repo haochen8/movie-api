@@ -197,27 +197,65 @@ export default {
     },
     "/api/actors": {
       get: {
-        summary: "Get all actors",
+        summary: "Get all actors with pagination",
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: {
+              type: "integer",
+              default: 1,
+            },
+            description: "Page number (starting from 1)",
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: {
+              type: "integer",
+              default: 10,
+            },
+            description: "Number of actors per page",
+          },
+        ],
         responses: {
           200: {
-            description: "List of actors",
+            description: "Paginated list of actors",
             content: {
               "application/json": {
                 schema: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string" },
-                      movies_played: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            title: { type: "string" },
+                  type: "object",
+                  properties: {
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          name: {
+                            type: "string",
+                          },
+                          movies_played: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                title: {
+                                  type: "string",
+                                },
+                              },
+                            },
                           },
                         },
                       },
+                    },
+                    page: {
+                      type: "integer",
+                    },
+                    totalPages: {
+                      type: "integer",
+                    },
+                    totalItems: {
+                      type: "integer",
                     },
                   },
                 },
@@ -230,14 +268,50 @@ export default {
     "/api/ratings": {
       get: {
         summary: "Get all ratings",
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            schema: {
+              type: "integer",
+              default: 1,
+            },
+            description: "Page number",
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: {
+              type: "integer",
+              default: 10,
+            },
+            description: "Number of ratings per page",
+          },
+        ],
         responses: {
           200: {
-            description: "List of ratings",
+            description: "Paginated list of ratings",
             content: {
               "application/json": {
                 schema: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/Rating" },
+                  type: "object",
+                  properties: {
+                    data: {
+                      type: "array",
+                      items: {
+                        $ref: "#/components/schemas/Rating",
+                      },
+                    },
+                    page: {
+                      type: "integer",
+                    },
+                    totalPages: {
+                      type: "integer",
+                    },
+                    totalItems: {
+                      type: "integer",
+                    },
+                  },
                 },
               },
             },
