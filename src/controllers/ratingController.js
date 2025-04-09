@@ -1,33 +1,33 @@
-/**
- * @file Defines the rating controller.
- * @module controllers/ratingController
- * @author Hao Chen
- * @version 1.0.0
- */
-
 import { logger } from "../config/winston.js";
 import { RatingModel } from "../models/ratingModel.js";
 import { generateLinks } from "../utils/hateoas.js";
 
 /**
- * @class RatingController
- * @description Controller for handling rating-related requests.
+ * Encapsulates the logic for handling requests related to ratings.
  */
 export class RatingController {
-  /**
-   * Retrieves all ratings from the database.
-   *
-   * @description Retrieves all ratings from the database.
-   * @param {Object} req - The request object.
-   * @param {Object} res - The response object.
-   * @param {Function} next - The next middleware function.
-   */
   async getAllRatings(req, res, next) {
     try {
-      const ratings = await RatingModel.find().populate("movie", "title");
-      // Generate HATEOAS links for each rating
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 100;
+      const skip = (page - 1) * limit;
+      const includeDetails = req.query.details === "true";
+
+      let query = RatingModel.find({}, "text movie")
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      if (includeDetails) {
+        query = query.populate("movie", "title");
+      }
+
+      const ratings = await query;
+      const totalItems = await RatingModel.countDocuments();
+
+      // Generate HATEOAS links for each rating and their movies
       const ratingsWithLinks = ratings.map((rating) => ({
-        ...rating.toObject(),
+        ...rating,
         _links: {
           self: generateLinks("rating", rating._id).self,
           movie: {
@@ -36,13 +36,15 @@ export class RatingController {
           },
         },
       }));
+
       res.status(200).json({
-        total: ratings.length,
-        _links: {
-          self: { href: "/api/ratings" },
-        },
+        page,
+        totalPages: Math.ceil(totalItems / limit),
+        totalItems,
+        _links: { self: { href: `/api/ratings?page=${page}&limit=${limit}` } },
         data: ratingsWithLinks,
       });
+
       logger.info("Fetched all ratings", { count: ratings.length });
     } catch (error) {
       logger.error(error);
@@ -51,38 +53,54 @@ export class RatingController {
   }
 
   /**
-   * Retrieves a rating by its ID.
+   * Get ratings for a specific movie.
    *
-   * @description Retrieves a rating by its ID.
    * @param {Object} req - The request object.
    * @param {Object} res - The response object.
    * @param {Function} next - The next middleware function.
+   * @returns
    */
   async getRatingsForMovie(req, res, next) {
     try {
-      const ratings = await RatingModel.find({ movie: req.params.id });
-      if (!ratings) {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      const ratings = await RatingModel.find({ movie: req.params.id }, "text")
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      const totalRatingCount = await RatingModel.countDocuments({
+        movie: req.params.id,
+      });
+
+      if (!ratings || ratings.length === 0) {
         return res.status(404).json({ message: "Ratings not found" });
       }
-      // Generate HATEOAS links for each rating
+
       const ratingsWithLinks = ratings.map((rating) => ({
-        ...rating.toObject(),
+        ...rating,
         _links: {
           self: generateLinks("rating", rating._id).self,
-          movie: {
-            href: `/api/movies/${req.params.id}`,
-          },
+          movie: { href: `/api/movies/${req.params.id}` },
         },
       }));
+
       res.status(200).json({
         movieId: req.params.id,
-        total: ratings.length,
+        page,
+        totalPages: Math.ceil(totalRatingCount / limit),
+        totalItems: totalRatingCount,
         _links: {
-          self: { href: `/api/movies/${req.params.id}/ratings` },
+          self: {
+            href: `/api/movies/${req.params.id}/ratings?page=${page}&limit=${limit}`,
+          },
           movie: { href: `/api/movies/${req.params.id}` },
         },
         data: ratingsWithLinks,
       });
+
       logger.info("Fetched ratings for movie", { movieId: req.params.id });
     } catch (error) {
       logger.error(error);

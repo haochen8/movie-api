@@ -9,7 +9,6 @@ import { logger } from "../config/winston.js";
 import { ActorModel } from "../models/actorModel.js";
 import { generateLinks } from "../utils/hateoas.js";
 
-
 /**
  * ActorController class
  * @class
@@ -24,26 +23,43 @@ export class ActorController {
    */
   async getAllActors(req, res, next) {
     try {
-      const actors = await ActorModel.find().populate("movies_played", "title");
-      // Generate HATEOAS links for each actor
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 100;
+      const skip = (page - 1) * limit;
+      const includeDetails = req.query.includeDetails === "true";
+
+      let query = ActorModel.find().skip(skip).limit(limit).lean();
+      if (includeDetails) {
+        query = query.populate("movies_played", "title");
+      }
+      const actors = await query;
+      const totalActors = await ActorModel.countDocuments();
+
+      // Generate HATEOAS links for each actor and their movies
       const actorsWithLinks = actors.map((actor) => ({
-        ...actor.toObject(),
+        ...actor,
         _links: {
           self: generateLinks("actor", actor._id).self,
-          movies: actor.movies_played.map((movie) => ({
-            href: `/api/movies/${movie._id}`,
-            title: movie.title
-          }))
-        }
+          movies:
+            includeDetails && Array.isArray(actor.movies_played)
+              ? actor.movies_played.map((movie) => ({
+                  href: `/api/movies/${movie._id}`,
+                  title: movie.title,
+                }))
+              : [],
+        },
       }));
       res.status(200).json({
-        total: actors.length,
-        _links: {
-          self: { href: "/api/actors" }
-        },
-        data: actorsWithLinks
+        page,
+        totalPages: Math.ceil(totalActors / limit),
+        totalActors,
+        _links: { self: { href: `/api/actors?page=${page}&limit=${limit}` } },
+        data: actorsWithLinks,
       });
-      logger.info("Fetched all actors", { count: actors.length });
+      logger.info("Fetched all actors with pagination", {
+        count: actors.length,
+      });
+      logger.debug("Sample actor:", actors[0]);
     } catch (error) {
       logger.error(error);
       res.status(500).json({ message: "Error fetching actors" });
