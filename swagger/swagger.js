@@ -213,7 +213,7 @@ export default {
             in: "query",
             schema: {
               type: "integer",
-              default: 10,
+              default: 100,
             },
             description: "Number of actors per page",
           },
@@ -283,7 +283,7 @@ export default {
             in: "query",
             schema: {
               type: "integer",
-              default: 10,
+              default: 100,
             },
             description: "Number of ratings per page",
           },
