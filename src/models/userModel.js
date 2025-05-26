@@ -45,12 +45,9 @@ schema.pre("save", async function () {
 schema.statics.authenticate = async function (email, password) {
   const userDocument = await this.findOne({ email });
 
-  // If no user found or password is wrong, throw an error.
-  if (
-    !userDocument ||
-    !(await bcrypt.compare(password, userDocument?.password))
-  ) {
-    throw new Error("Invalid credentials.");
+  // If no user found or password does not match, return null.
+  if (!userDocument || !(await bcrypt.compare(password, userDocument.password))) {
+    return null;
   }
 
   // User found and password correct, return the user.
