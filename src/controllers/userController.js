@@ -19,7 +19,11 @@ export class UserController {
   async register(req, res) {
     try {
       const { email, password } = req.body;
-
+      if (!email || !password) {
+        return res
+          .status(400)
+          .json({ message: "Email and password are required" });
+      }
       const existingUser = await UserModel.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
