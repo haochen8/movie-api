@@ -25,6 +25,14 @@ export class ActorController {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 100;
+
+      // Validate query parameters
+      if (page < 1 || limit < 1) {
+        return res.status(400).json({
+          message: "Invalid page or limit value.",
+        });
+      }
+
       const skip = (page - 1) * limit;
       const includeDetails = req.query.includeDetails === "true";
 

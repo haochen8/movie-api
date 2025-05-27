@@ -10,78 +10,15 @@
 			"name": "Auth",
 			"item": [
 				{
-					"name": "Login",
-					"request": {
-						"auth": {
-							"type": "bearer"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/auth/login",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Register",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/auth/register",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"auth",
-								"register"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login with Test-Script",
+					"name": "Register User - Success",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
+									"const uuid = Math.random().toString(36).substring(2, 12);",
+									"pm.environment.set(\"email\", `test_${uuid}@example.com`);",
+									"pm.environment.set(\"password\", \"TestPass123!\");",
 									""
 								],
 								"type": "text/javascript",
@@ -92,98 +29,9 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Login was successful\", function () {",
-									"  pm.response.to.have.status(200);",
-									"  pm.expect(jsonData).to.have.property(\"token\");",
+									"pm.test(\"Status is 201 Created\", () => {",
+									"  pm.response.to.have.status(201);",
 									"});",
-									"",
-									"// Save token to environment variable",
-									"if (jsonData.token) {",
-									"  pm.environment.set(\"token\", jsonData.token);",
-									"}",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/auth/login",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "User already exist",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/auth/register",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"auth",
-								"register"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Register with Random Data",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const uuid = Math.random().toString(36).substring(2, 12);",
-									"pm.environment.set(\"email\", `test_${uuid}@test.com`);",
-									"pm.environment.set(\"password\", \"TestPass123!\");",
 									""
 								],
 								"type": "text/javascript",
@@ -207,16 +55,216 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/auth/register",
-							"protocol": "http",
+							"raw": "{{baseUrl}}/auth/register",
 							"host": [
-								"localhost"
+								"{{baseUrl}}"
 							],
-							"port": "3000",
 							"path": [
-								"api",
 								"auth",
 								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User - Already exist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 400 Bad Request\", () => {",
+									"  pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const body = pm.response.json();",
+									"pm.test(\"Error message exists\", () => {",
+									"  pm.expect(body.message || body.error).to.be.a(\"string\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User – Missing Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 400 for missing password\", () => {",
+									"  pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login – Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Login successful\", function () {",
+									"  pm.response.to.have.status(200);",
+									"  pm.expect(jsonData).to.have.property(\"token\");",
+									"});",
+									"",
+									"// Store the token in environment variable",
+									"if (jsonData.token) {",
+									"  pm.environment.set(\"token\", jsonData.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Invalid Credentials",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 401 Unauthorized\", () => {",
+									"  pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"invalid123\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
 							]
 						}
 					},
@@ -228,293 +276,13 @@
 			"name": "Movies",
 			"item": [
 				{
-					"name": "Get All Movies",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Movie",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZWMxMzFjZGQ4MzhlY2E2YWVlN2FjYyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MzU5NDYzMywiZXhwIjoxNzQzNjgxMDMzfQ.hlC6DxpeZn-HGLxH-5PgLOrhqrqsG-eHCD21htniJLc",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies/67eabb3feab40e80b54088b8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								"67eabb3feab40e80b54088b8"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Movie",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "PUT",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies/67eabb3feab40e80b54088b8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								"67eabb3feab40e80b54088b8"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Movie",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZWMxMzFjZGQ4MzhlY2E2YWVlN2FjYyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MzcxNDc2OCwiZXhwIjoxNzQzODAxMTY4fQ.Tho6k45QuIgQkqLuiAg7qRscI7n0Ojvf9ea88VAVklE",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"My Test Movie\",\n    \"release_year\": 2025,\n    \"genre\": \"Drama\",\n    \"description\": \"This is a test movie.\",\n    \"tmdbId\": \"test-12345\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/movies/",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Movie By Genre",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies?genre=Action",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies"
-							],
-							"query": [
-								{
-									"key": "genre",
-									"value": "Action"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Movie By Year",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies?year=2010",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies"
-							],
-							"query": [
-								{
-									"key": "year",
-									"value": "2010"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Movies with Pagnation",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies?genre=Action&year=2000&page=2&limit=5",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies"
-							],
-							"query": [
-								{
-									"key": "genre",
-									"value": "Action"
-								},
-								{
-									"key": "year",
-									"value": "2000"
-								},
-								{
-									"key": "page",
-									"value": "2"
-								},
-								{
-									"key": "limit",
-									"value": "5"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Movie By ID",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies/67edb64ca96452cb6ad6b3fa",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								"67edb64ca96452cb6ad6b3fa"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Movie ID with Test-script",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Movie fetched by ID\", () => {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies/67edb64ca96452cb6ad6b3fa",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								"67edb64ca96452cb6ad6b3fa"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Movie with Test-Script",
+					"name": "Create Movie – Success (Authenticated)",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const uuid = Math.random().toString(36).substring(2, 12);",
+									"const uuid = Math.random().toString(36).substring(2, 10);",
 									"pm.environment.set(\"randomTitle\", `Test Movie ${uuid}`);",
 									""
 								],
@@ -526,11 +294,224 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const data = pm.response.json();",
-									"pm.environment.set(\"movieId\", data._id);",
+									"let movie = pm.response.json();",
 									"",
-									"pm.test(\"Movie created\", () => {",
-									"  pm.expect(data).to.have.property(\"_id\");",
+									"pm.test(\"Movie created\", function () {",
+									"  pm.response.to.have.status(201);",
+									"  pm.expect(movie).to.have.property(\"id\");",
+									"});",
+									"",
+									"// Save movie ID",
+									"pm.environment.set(\"movieId\", movie.id);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"{{randomTitle}}\",\n  \"release_year\": 2024,\n  \"genre\": \"Drama\",\n  \"description\": \"Test movie\",\n  \"tmdbId\": \"tmdb-{{randomTitle}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/movies/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Movie – Unauthorized (Missing Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should return 401 Unauthorized\", () => {",
+									"  pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"{{randomTitle}}\",\n  \"release_year\": 2024,\n  \"genre\": \"Drama\",\n  \"description\": \"Test movie\",\n  \"tmdbId\": \"tmdb-{{randomTitle}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/movies/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Movies – Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fetched movie list\", () => {",
+									"  pm.response.to.have.status(200);",
+									"  const body = pm.response.json();",
+									"  pm.expect(body.data).to.be.an(\"array\");",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movie By ID - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Movie fetched by ID\", () => {",
+									"  pm.response.to.have.status(200);",
+									"  const movie = pm.response.json();",
+									"  pm.expect(movie.id).to.eql(pm.environment.get(\"movieId\"));",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/{{movieId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"{{movieId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movie by ID – Nonexistent ID (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Returns 404 for unknown ID\", () => {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/67ef184467f90023c0000000",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"67ef184467f90023c0000000"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Movie – Success (Authenticated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Movie updated\", () => {",
+									"  pm.response.to.have.status(200);",
 									"});",
 									""
 								],
@@ -545,16 +526,16 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZWMxMzFjZGQ4MzhlY2E2YWVlN2FjYyIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0MzcxNDc2OCwiZXhwIjoxNzQzODAxMTY4fQ.Tho6k45QuIgQkqLuiAg7qRscI7n0Ojvf9ea88VAVklE",
+									"value": "{{token}}",
 									"type": "string"
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"My Test Movie123\",\n    \"release_year\": 2025,\n    \"genre\": \"Drama\",\n    \"description\": \"This is a test movie.\",\n    \"tmdbId\": \"test-1234\"\n}",
+							"raw": "{\n  \"title\": \"{{randomTitle}} (Updated)\",\n  \"release_year\": 2025,\n  \"genre\": \"Thriller\",\n  \"description\": \"Updated movie\",\n  \"tmdbId\": \"tmdb-{{randomTitle}}-upd\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -562,16 +543,179 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/movies/",
-							"protocol": "http",
+							"raw": "{{baseUrl}}/movies/{{movieId}}",
 							"host": [
-								"localhost"
+								"{{baseUrl}}"
 							],
-							"port": "3000",
 							"path": [
-								"api",
 								"movies",
-								""
+								"{{movieId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Movie – Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Unauthorized movie update\", () => {",
+									"  pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"{{randomTitle}} (Updated)\",\n  \"release_year\": 2025,\n  \"genre\": \"Thriller\",\n  \"description\": \"Updated movie\",\n  \"tmdbId\": \"tmdb-{{randomTitle}}-upd\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/movies/{{movieId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"{{movieId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Movie - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Movie deleted successfully\", () => {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/{{movieId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"{{movieId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete movie - Nonexistent ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Nonexistent movie returns a 404 status code\", () => {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/000000000000000000000000",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"000000000000000000000000"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete movie - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Unauthorized deletion fails with 401\", () => {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/{{movieId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"{{movieId}}"
 							]
 						}
 					},
@@ -583,7 +727,41 @@
 			"name": "Actors",
 			"item": [
 				{
-					"name": "Get All Actors",
+					"name": "Get All Actors - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has pagination metadata\", function () {",
+									"  const body = pm.response.json();",
+									"  pm.expect(body).to.have.property(\"page\");",
+									"  pm.expect(body).to.have.property(\"totalPages\");",
+									"  pm.expect(body).to.have.property(\"totalActors\");",
+									"});",
+									"",
+									"pm.test(\"Each actor has expected properties\", function () {",
+									"  const body = pm.response.json();",
+									"  if (body.length > 0) {",
+									"    pm.expect(body[0]).to.have.property(\"name\");",
+									"    pm.expect(body[0]).to.have.property(\"_id\");",
+									"  }",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 300ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -591,14 +769,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/actors",
-							"protocol": "http",
+							"raw": "{{baseUrl}}/actors",
 							"host": [
-								"localhost"
+								"{{baseUrl}}"
 							],
-							"port": "3000",
 							"path": [
-								"api",
 								"actors"
 							]
 						}
@@ -606,7 +781,7 @@
 					"response": []
 				},
 				{
-					"name": "Get All Actors with Test-Script",
+					"name": "Get All Actors - Invalid URL",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -625,8 +800,9 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Fetched successfully\", () => {",
-									"  pm.response.to.have.status(200);",
+									"// Update the test for 'Fetched successfully'",
+									"pm.test(\"Expect 404 for invalid actors endpoint\", function () {",
+									"  pm.response.to.have.status(404);",
 									"});",
 									""
 								],
@@ -642,15 +818,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/actors",
-							"protocol": "http",
+							"raw": "{{baseUrl}}/actors/invalid",
 							"host": [
-								"localhost"
+								"{{baseUrl}}"
 							],
-							"port": "3000",
 							"path": [
-								"api",
-								"actors"
+								"actors",
+								"invalid"
 							]
 						}
 					},
@@ -662,62 +836,30 @@
 			"name": "Ratings",
 			"item": [
 				{
-					"name": "Get Ratings for A Movie",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/movies/67edb64ca96452cb6ad6bc28/ratings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"movies",
-								"67edb64ca96452cb6ad6bc28",
-								"ratings"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET all ratings",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/api/ratings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"ratings"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Ratings with Test-Script",
+					"name": "GET All Ratings - Success",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Fetched successfully\", () => {",
+									"const body = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
 									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains ratings array\", function () {",
+									"  pm.expect(body.data).to.be.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"Each rating contains expected fields\", function () {",
+									"  if (body.length > 0) {",
+									"    pm.expect(body[0]).to.have.property(\"_id\");",
+									"    pm.expect(body[0]).to.have.property(\"movie\");",
+									"    pm.expect(body[0]).to.have.property(\"text\");",
+									"    pm.expect(body[0]._links).to.be.an('object').that.has.property('self');",
+									"    pm.expect(body[0]._links.self).to.be.an('object').that.has.property('href');",
+									"  }",
 									"});",
 									""
 								],
@@ -733,14 +875,98 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/ratings",
-							"protocol": "http",
+							"raw": "{{baseUrl}}/ratings",
 							"host": [
-								"localhost"
+								"{{baseUrl}}"
 							],
-							"port": "3000",
 							"path": [
-								"api",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ratings for A Movie - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Ratings are returned as an array\", function () {",
+									"  pm.expect(body.ratings).to.be.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"Each rating has valid structure\", function () {",
+									"  if (body.ratings.length > 0) {",
+									"    pm.expect(body.ratings[0]).to.have.property(\"movieId\");",
+									"    pm.expect(body.ratings[0]).to.have.property(\"rating\");",
+									"  }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/{{movieId}}/ratings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"{{movieId}}",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ratings for a Non-existent movie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Returns 404 for non-existent movie\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/movies/123456789012345678901234/ratings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movies",
+								"123456789012345678901234",
 								"ratings"
 							]
 						}
@@ -748,6 +974,55 @@
 					"response": []
 				}
 			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://movie-api-y1so.onrender.com/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "movieId",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
