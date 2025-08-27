@@ -16,7 +16,7 @@ export class UserController {
    * @param {Object} res - The response object.
    * @returns {Promise<void>}
    */
-  async register(req, res) {
+  async register(req, res, next) {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
@@ -53,7 +53,7 @@ export class UserController {
    * @param {Object} res - The response object.
    * @returns {Promise<void>}
    */
-  async login(req, res) {
+  async login(req, res, next) {
     try {
       const { email, password } = req.body;
 

@@ -70,6 +70,17 @@
           "name": "Register User - Already exist",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('email') || !pm.environment.get('password')) {",
+                  "  throw new Error(\"Missing email/password – run 'Register User - Success' first.\");",
+                  "}"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -93,7 +104,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"1234567890\"\n}\n",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}\n",
               "options": {
                 "raw": {
                   "language": "json"
