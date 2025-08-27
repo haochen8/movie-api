@@ -47,8 +47,8 @@ export class RatingController {
 
       logger.info("Fetched all ratings", { count: ratings.length });
     } catch (error) {
-      logger.error(error);
-      res.status(500).json({ message: "Error retrieving ratings" });
+      logger.error("Error retrieving ratings", { error });
+      return next(error);
     }
   }
 
@@ -103,8 +103,8 @@ export class RatingController {
 
       logger.info("Fetched ratings for movie", { movieId: req.params.id });
     } catch (error) {
-      logger.error(error);
-      res.status(500).json({ message: "Error retrieving ratings" });
+      logger.error("Error retrieving ratings", { error });
+      return next(error);
     }
   }
 }

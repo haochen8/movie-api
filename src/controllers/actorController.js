@@ -32,7 +32,7 @@ export class ActorController {
           message: "Invalid page or limit value.",
         });
       }
-
+      
       const skip = (page - 1) * limit;
       const includeDetails = req.query.includeDetails === "true";
 
@@ -69,8 +69,8 @@ export class ActorController {
       });
       logger.debug("Sample actor:", actors[0]);
     } catch (error) {
-      logger.error(error);
-      res.status(500).json({ message: "Error fetching actors" });
+      logger.error("Error fetching actors", { error });
+      return next(error);
     }
   }
 }

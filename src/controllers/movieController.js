@@ -21,13 +21,13 @@ export class MovieController {
    */
   async getAllMovies(req, res, next) {
     try {
-      const { genre, year, page = 1, limit = 10 } = req.query;
+      const { genre, release_year, page = 1, limit = 10 } = req.query;
       const query = {};
       if (genre) {
         query.genre = genre;
       }
-      if (year) {
-        query.year = year;
+      if (release_year) {
+        query.release_year = release_year;
       }
       logger.info(`Retrieving movies with query: ${JSON.stringify(query)}`);
       const movies = await MovieModel.find(query)
@@ -51,8 +51,8 @@ export class MovieController {
         data: moviesWithLinks,
       });
     } catch (error) {
-      res.status(500).json({ message: "Error retrieving movies" });
       logger.error("Error retrieving movies", { error });
+      return next(error);
     }
   }
 
@@ -75,8 +75,8 @@ export class MovieController {
         _links: generateLinks("movie", movie._id),
       });
     } catch (error) {
-      res.status(500).json({ message: "Error retrieving movie" });
       logger.error("Error retrieving movie", { error });
+      return next(error);
     }
   }
 
@@ -95,8 +95,8 @@ export class MovieController {
         _links: generateLinks("movie", movie._id),
       });
     } catch (error) {
-      res.status(500).json({ message: "Error creating movie" });
       logger.error("Error creating movie", { error });
+      return next(error);
     }
   }
 
@@ -119,8 +119,8 @@ export class MovieController {
       logger.info("Movie updated successfully", { movie });
       res.status(200).json({ message: "Movie updated successfully", movie });
     } catch (error) {
-      res.status(400).json({ message: "Error updating movie" });
       logger.error("Error updating movie", { error });
+      return next(error);
     }
   }
 
@@ -138,8 +138,8 @@ export class MovieController {
       logger.info("Movie deleted successfully", { movie });
       res.status(200).json({ message: "Movie deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Error deleting movie" });
       logger.error("Error deleting movie", { error });
+      return next(error);
     }
   }
 
@@ -183,8 +183,8 @@ export class MovieController {
         },
       });
     } catch (error) {
-      res.status(500).json({ message: "Error retrieving ratings" });
       logger.error("Error retrieving ratings", { error });
+      return next(error);
     }
   }
 }

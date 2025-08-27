@@ -24,6 +24,7 @@ export class UserController {
           .status(400)
           .json({ message: "Email and password are required" });
       }
+
       const existingUser = await UserModel.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
@@ -32,11 +33,18 @@ export class UserController {
       const newUser = new UserModel({ email, password });
       await newUser.save();
 
-      res.status(201).json({ message: "User registered successfully" });
+      res.status(201).json({
+        message: "User registered successfully",
+        _id: newUser._id,
+        email: newUser.email,
+      });
       logger.info("User registered successfully", { email });
     } catch (error) {
-      res.status(500).json({ message: "Error registering user" });
+      if (error?.code === 11000) {
+        return res.status(400).json({ message: "User already exists" });
+      }
       logger.error("Error registering user", { error });
+      return next(error);
     }
   }
   /**
@@ -64,8 +72,8 @@ export class UserController {
       );
       res.status(200).json({ message: "Login successful", token });
     } catch (error) {
-      res.status(500).json({ message: "Error logging in" });
       logger.error("Error logging in", { error });
+      return next(error);
     }
   }
 }
